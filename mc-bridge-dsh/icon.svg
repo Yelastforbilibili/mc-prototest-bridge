@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Minecraft Bridge">
+  <defs>
+    <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd4a8"/>
+      <stop offset="1" stop-color="#3f9e74"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#17262b"/>
+  <!-- deck of the bridge: three isometric slabs -->
+  <path d="M12 34 L32 24 L52 34 L32 44 Z" fill="url(#deck)" stroke="#0d1a1e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12 34 L32 44 L32 56 L12 46 Z" fill="#2b6f52" stroke="#0d1a1e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M52 34 L32 44 L32 56 L52 46 Z" fill="#1f5740" stroke="#0d1a1e" stroke-width="2" stroke-linejoin="round"/>
+  <!-- signal pillars: agent on one bank, server on the other -->
+  <rect x="17" y="12" width="6" height="12" rx="1.5" fill="#e8f4f0"/>
+  <rect x="41" y="12" width="6" height="12" rx="1.5" fill="#e8f4f0"/>
+  <circle cx="32" cy="17" r="3.4" fill="#ffd166"/>
+  <path d="M23 17 H28.6 M35.4 17 H41" stroke="#ffd166" stroke-width="2" stroke-linecap="round"/>
+</svg>

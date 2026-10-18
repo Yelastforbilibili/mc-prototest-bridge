@@ -1,0 +1,10 @@
+# prototest-bridge: read-only JSON views + event truth for an automated Python client.
+# The bridge is meant for a test rig on the same machine, so it binds to loopback by default.
+host: "127.0.0.1"
+port: 25963
+
+# Leave empty to disable authentication. When set, every request must carry ?token=... or X-Bridge-Token.
+token: ""
+
+# Log one line per HTTP request (useful while wiring up a client, noisy afterwards).
+debug: false

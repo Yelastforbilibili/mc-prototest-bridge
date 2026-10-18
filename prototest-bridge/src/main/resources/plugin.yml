@@ -1,0 +1,17 @@
+name: prototest-bridge
+version: ${version}
+main: com.prototest.bridge.PrototestBridge
+api-version: "26.3"
+author: prototest
+description: Loopback JSON bridge and event-truth recorder for an automated Python Minecraft client.
+
+commands:
+  prototest:
+    description: Show bridge status, server log tail, recorded events, and movement tracing
+    usage: /prototest status|url|log [n]|events [n]|trace start|stop|state [player]|selfcheck
+    permission: prototest.admin
+
+permissions:
+  prototest.admin:
+    description: Use /prototest
+    default: op

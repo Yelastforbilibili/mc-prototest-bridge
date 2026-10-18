@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Minecraft 服务端真值桥",
+    "description": "通过 prototest-bridge 插件读取本地 Minecraft Paper 服务端的权威状态与事件日志，供 Agent 校验协议机器人的行为。"
+  }
+}

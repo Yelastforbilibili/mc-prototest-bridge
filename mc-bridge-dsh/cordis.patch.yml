@@ -1,0 +1,6 @@
+- insert:
+    - id: mc-bridge
+      name: '@local/mc-bridge'
+      config:
+        baseUrl: 'http://127.0.0.1:25963'
+        timeoutMs: 20000

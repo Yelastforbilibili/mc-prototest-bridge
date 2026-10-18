@@ -1,0 +1,35 @@
+# Builds
+build/
+out/
+.gradle/
+*.class
+node_modules/
+
+# Downloaded toolchain (fetch-ecj.ps1 restores it)
+ecj-*.jar
+**/libs/*.jar
+
+# Local server rigs
+Test26.3Server/
+world*/
+plugins/
+logs/
+*.log
+run-stdout.log
+server-console.log
+paper-*.jar
+cache/
+
+# Client checkout and generated dumps
+repo/
+artifacts/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Editors / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

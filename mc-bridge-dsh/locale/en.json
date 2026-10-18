@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Minecraft Bridge",
+    "description": "Agent tools that read authoritative state and the recorded event log from a local Minecraft Paper server through the prototest-bridge plugin."
+  }
+}
