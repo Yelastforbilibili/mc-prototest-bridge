@@ -10,8 +10,31 @@ commands:
     description: Show bridge status, server log tail, recorded events, and movement tracing
     usage: /prototest status|url|log [n]|events [n]|trace start|stop|state [player]|selfcheck
     permission: prototest.admin
+  see:
+    description: Watch a registered bot's inventory live, or /see stop to leave
+    usage: /see [bot|stop|list]
+    permission: prototest.see
+  seepattern:
+    description: Choose whether a watched bot is shown in a chest window or your own inventory
+    usage: /seepattern chest|inv
+    permission: prototest.see
+  botregister:
+    description: Announce that this player is an automated client, so operators can watch it
+    usage: /botregister
+    permission: prototest.bot
+    aliases: [botreg]
+  botunregister:
+    description: Stop being listed as an automated client
+    usage: /botunregister
+    permission: prototest.bot
 
 permissions:
   prototest.admin:
     description: Use /prototest
     default: op
+  prototest.see:
+    description: Watch the inventory of a registered bot
+    default: op
+  prototest.bot:
+    description: Register as an automated client with /botregister
+    default: true

@@ -373,6 +373,44 @@ final class BridgeServer {
                 });
             case "/events/clear":
                 return Response.json(Json.map("ok", true, "cleared", plugin.events().clear()));
+            case "/bots":
+                // Bots announce themselves in game with /botregister; this is the same registry the /see
+                // command uses, plus the live views, so a test can assert what the operator sees.
+                return syncJson(() -> {
+                    List<Object> bots = new ArrayList<>();
+                    for (Player bot : plugin.bots().online()) {
+                        bots.add(bot.getName());
+                    }
+                    List<Object> views = new ArrayList<>();
+                    for (Object[] row : plugin.spectate().snapshot()) {
+                        views.add(Json.map("viewer", row[0], "bot", row[1], "pattern", row[2]));
+                    }
+                    return Json.map("ok", true, "bots", bots, "registered", plugin.bots().names(), "views", views);
+                });
+            case "/rec":
+                return syncJson(() -> {
+                    String player = r.req("player", "");
+                    long since = (long) r.reqDouble("since", 0.0);
+                    int limit = Math.max(1, Math.min(r.reqInt("limit", 400), 4000));
+                    List<Map<String, Object>> entries = plugin.tap().entries(player, since, limit);
+                    Map<String, Object> m = new LinkedHashMap<>(plugin.tap().summary());
+                    m.put("ok", true);
+                    m.put("player", player.isEmpty() ? null : player);
+                    m.put("since", since);
+                    m.put("count", entries.size());
+                    m.put("entries", entries);
+                    return m;
+                });
+            case "/rec/clear":
+                return syncJson(() -> {
+                    plugin.tap().clear();
+                    return Json.map("ok", true, "cleared", true);
+                });
+            case "/rec/attach":
+                return syncJson(() -> {
+                    plugin.tap().attachOnline();
+                    return Json.map("ok", true, "tapped", plugin.tap().summary().get("tapped"));
+                });
             case "/trace":
                 return Response.json(Json.map("ok", true, "trace", plugin.events().traceState()));
             case "/trace/start":
@@ -599,6 +637,8 @@ final class BridgeServer {
                 "GET  /events?since=&limit=&type=",
                 "POST /events/clear",
                 "GET  /trace | POST /trace/start?player=&limit= | POST /trace/stop | GET /trace/data",
+                "GET  /rec?player=&since=&limit=  (raw packets in/out for one player, newest last)",
+                "POST /rec/clear | POST /rec/attach",
                 "GET  /registry/blocks?fresh=",
                 "GET  /registry/items?fresh=",
                 "GET  /registry/entities",

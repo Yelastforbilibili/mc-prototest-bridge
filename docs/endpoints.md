@@ -66,6 +66,19 @@ Full per-player projection plus inventory. Also available as `GET /player/<name>
 item, plus `selected`, `offHand`, `armor`, `enderChest`. `equipment` keys: `mainHand`, `offHand`, `helmet`,
 `chestplate`, `leggings`, `boots`.
 
+### `GET /bots`
+
+The spectator registry, i.e. who announced themselves as an automated client and who is watching whom.
+
+```json
+{"ok":true,"bots":["SuiteBot"],"registered":["SuiteBot","WatchedBot"],
+ "views":[{"viewer":"RainBow","bot":"SuiteBot","pattern":"chest"}]}
+```
+
+`bots` lists the registered bots that are online right now, `registered` keeps every name that registered
+during this server session (a bot re-registers when it reconnects), and `views` is the live `/see` sessions.
+The in-game side is `/botregister`, `/see [bot|stop|list]` and `/seepattern chest|inv` — see the README.
+
 ---
 
 ## World state

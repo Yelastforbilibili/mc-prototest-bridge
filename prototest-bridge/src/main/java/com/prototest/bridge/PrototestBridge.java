@@ -22,6 +22,9 @@ public final class PrototestBridge extends JavaPlugin {
     private final BridgeState state = new BridgeState(this);
     private final EventRecorder events = new EventRecorder(this);
     private final LogCapture logs = new LogCapture();
+    private final PacketTap tap = new PacketTap(this);
+    private final BotRegistry bots = new BotRegistry();
+    private final SpectatorService spectate = new SpectatorService(this);
 
     private BridgeServer server;
     private long startedAt;
@@ -52,6 +55,36 @@ public final class PrototestBridge extends JavaPlugin {
             cmd.setExecutor(new PrototestCommand(this));
         }
 
+        // Watching a bot's inventory: the bot registers itself with /botregister, an operator opens a live view
+        // with /see. Both the registry and the service are session scoped on purpose -- a reconnect re-registers.
+        SpectatorCommand spectator = new SpectatorCommand(this, bots, spectate);
+        for (String name : new String[] {"see", "seepattern", "botregister", "botunregister"}) {
+            PluginCommand spectatorCommand = getCommand(name);
+            if (spectatorCommand == null) {
+                getLogger().warning("command " + name + " is missing from plugin.yml");
+                continue;
+            }
+            spectatorCommand.setExecutor(spectator);
+            spectatorCommand.setTabCompleter(spectator);
+        }
+        getServer().getPluginManager().registerEvents(spectate, this);
+        spectate.start();
+
+        // Join/quit keep the packet tap attached; players already online (this happens on a plugin reload) are
+        // picked up once, here.
+        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+                getServer().getScheduler().runTaskLater(PrototestBridge.this, () -> tap.attach(event.getPlayer()), 1L);
+            }
+
+            @org.bukkit.event.EventHandler
+            public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+                tap.detach(event.getPlayer());
+            }
+        }, this);
+        getServer().getScheduler().runTaskLater(this, tap::attachOnline, 1L);
+
         String host = getConfig().getString("host", "127.0.0.1");
         int port = getConfig().getInt("port", 25963);
         String token = getConfig().getString("token", "");
@@ -69,6 +102,7 @@ public final class PrototestBridge extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        spectate.stop();
         if (server != null) {
             server.stop();
             server = null;
@@ -86,6 +120,18 @@ public final class PrototestBridge extends JavaPlugin {
 
     LogCapture logs() {
         return logs;
+    }
+
+    PacketTap tap() {
+        return tap;
+    }
+
+    BotRegistry bots() {
+        return bots;
+    }
+
+    SpectatorService spectate() {
+        return spectate;
     }
 
     BridgeServer server() {

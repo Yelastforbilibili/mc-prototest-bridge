@@ -133,13 +133,14 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 
 ## 桥能回答什么
 
-33 个端点，除三个注册表导出（TSV 文本，方便 diff 和流式处理）外都是 JSON。`GET /` 会自述全部端点。
+34 个端点，除三个注册表导出（TSV 文本，方便 diff 和流式处理）外都是 JSON。`GET /` 会自述全部端点。
 完整参数与返回结构见 [`docs/endpoints.md`](docs/endpoints.md)。
 
 | 需求 | 端点 |
 | --- | --- |
 | 服务器在不在、什么版本、有哪些世界 | `GET /status` `GET /worlds` `GET /world?name=` |
 | 谁在线、精确坐标 | `GET /players` `GET /player?name=` `GET /inventory?name=` |
+| 谁注册成了 bot、谁在看谁 | `GET /bots` |
 | 单个方块（含原版 id 与碰撞盒） | `GET /block?world=&x=&y=&z=` |
 | 批量方块 / 整个区域 | `POST /blocks` `GET /region?…&dx=&dy=&dz=` |
 | 一个 16³ section 的原始 state id（区块格式） | `GET /section?world=&x=&y=&z=` |
@@ -152,6 +153,26 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 | 原版注册表真值 | `GET /registry/blocks` `GET /registry/items` `GET /registry/entities` |
 | 服务端日志（JUL 环 + `logs/latest.log`） | `GET /log` `GET /log/file?tail=` |
 | 等待 N tick | `POST /tick/wait?ticks=` |
+
+### 盯着一个 bot 的背包看
+
+bot 上线后自报一次身份，op 就能随时看它的背包：
+
+```
+/botregister            # bot 自己执行：我是机器，可以看
+/see                    # op：当前只有一个注册 bot 时直接看它
+/see <名字>             # 多个 bot 在线时指定（不能看自己）
+/seepattern chest|inv   # 切换观看方式
+/see stop               # 退出，并把自己的物品还回来
+```
+
+* `chest`（默认）：开一个虚拟 45 格箱子——热键栏、主背包、盔甲、副手，与 bot 自己的槽位一一对应，
+  每 4 tick 刷新一次。关掉窗口就等于退出观看，和普通箱子一样。
+* `inv`：先保存 op 自己背包里的物品，再把 bot 的槽位写进 op **自己的**背包，所以按 E 看到的就是 bot。
+  关掉自己的背包不能算退出（客户端行为，不发包），只有 `/see stop` 会把保存的物品还回来。
+
+两种模式下，观看窗口里的点击都会被取消：这是一个实时镜像，不是可以顺手牵羊的副本。`GET /bots`
+把同一份注册表与会话交给测试用——验收套件就是这样在没有人工介入的情况下证明两种视角都对。
 
 所有游戏状态读取都切回主线程（`callSyncMethod`，15 秒超时），因此拿到的是**一致快照**，
 而不是 HTTP 线程读到的一团撕裂状态。

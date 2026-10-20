@@ -144,7 +144,7 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 
 ## What the bridge can answer
 
-33 endpoints, all JSON except the three registry dumps (tab-separated text, easier to diff and stream).
+34 endpoints, all JSON except the three registry dumps (tab-separated text, easier to diff and stream).
 `GET /` on the bridge lists them all. Full reference with parameters and response shapes:
 [`docs/endpoints.md`](docs/endpoints.md).
 
@@ -152,6 +152,7 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 | --- | --- |
 | Is the server up, what version, which worlds | `GET /status` `GET /worlds` `GET /world?name=` |
 | Who is online, where exactly | `GET /players` `GET /player?name=` `GET /inventory?name=` |
+| Who registered as a bot, who is watching whom | `GET /bots` |
 | One block with vanilla id + collision shape | `GET /block?world=&x=&y=&z=` |
 | Many blocks at once / a whole box | `POST /blocks` `GET /region?…&dx=&dy=&dz=` |
 | A 16³ section as raw state ids (chunk format) | `GET /section?world=&x=&y=&z=` |
@@ -167,6 +168,28 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 
 Every game-state read is executed on the server's main thread (`callSyncMethod`, 15 s timeout), so the
 answers are consistent snapshots rather than torn reads from a background HTTP thread.
+
+### Watching a bot's inventory
+
+A bot makes itself known once, right after joining:
+
+```
+/botregister            # the bot: "I am a machine, you may watch me"
+/see                    # an operator: watch the only registered bot
+/see <name>             # …or a named one, when several are online (never yourself)
+/seepattern chest|inv   # how to show it
+/see stop               # leave, and get your own items back
+```
+
+* `chest` (default) opens a virtual 45-slot chest — hotbar, main inventory, armour and offhand, index for
+  index with the bot's own slots — refreshed every 4 ticks. Closing the window ends the view, like a chest.
+* `inv` saves what the operator carries, then writes the bot's slots into the operator's *own* inventory, so
+  they press their normal inventory key and see the bot. Closing that screen cannot mean "stop": only
+  `/see stop` restores the saved items.
+
+Clicks inside a watched inventory are cancelled in both patterns: the view is a live mirror, not a copy the
+operator could take items out of. `GET /bots` exposes the same registry and sessions to a test, which is how
+the acceptance suite proves both patterns without a human in the loop.
 
 ### The event log
 
