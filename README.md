@@ -339,6 +339,26 @@ mc-prototest-bridge/
     └── findings-26.3.md        what this harness found in one client's 26.3 support
 ```
 
+### Working copy in the test workspace
+
+The test workspace keeps exactly one copy of the sources: this checkout. The
+`prototest-bridge/` directory next to it is a **junction** to
+`mc-prototest-bridge/prototest-bridge`, so scripts and docs that predate the
+split still resolve while every edit lands in the checkout that gets committed.
+
+One command builds, deploys and pushes:
+
+```powershell
+powershell -File .\sync-bridge.ps1 -Message "Add the spectator view"
+powershell -File .\sync-bridge.ps1 -BuildOnly     # build + deploy, no commit
+powershell -File .\sync-bridge.ps1 -Restart       # also bounce the test server
+```
+
+`sync-bridge.ps1` lives in the workspace root (it is not part of this
+repository, because it needs the test server path). It runs `build.ps1
+-Deploy` against `Test26.3Server`, then commits whatever changed here and pushes
+over SSH, skipping both steps when the tree or the remote is already up to date.
+
 ## Building
 
 ### `build.ps1` (supported, verified)
