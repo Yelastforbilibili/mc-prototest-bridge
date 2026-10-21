@@ -212,7 +212,11 @@ public final class PacketTap {
     // ------------------------------------------------------------------ recording
 
     private void record(UUID id, String direction, Object packet) {
-        String simple = packet.getClass().getSimpleName();
+        // Paper names the movement packets ServerboundMovePlayerPacket$Pos and
+        // friends, and getSimpleName() of a nested class drops the outer name,
+        // so derive the key from the binary name instead.
+        String simple = packet.getClass().getName();
+        simple = simple.substring(simple.lastIndexOf('.') + 1);
         int dollar = simple.indexOf('$');
         if (dollar > 0) {
             simple = simple.substring(0, dollar);
