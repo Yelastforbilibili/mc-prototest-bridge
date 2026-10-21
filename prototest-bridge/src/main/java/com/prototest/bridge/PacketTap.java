@@ -57,10 +57,10 @@ public final class PacketTap {
         // makes "which position claim reached the server when" visible, which is what a
         // teleport-versus-movement mismatch looks like from the outside.
         INTERESTING.put("ServerboundAcceptTeleportationPacket", new String[] {"id"});
-        INTERESTING.put("ServerboundMovePlayerPosPacket", new String[] {"x", "y", "z", "onGround"});
-        INTERESTING.put("ServerboundMovePlayerPosRotPacket", new String[] {"x", "y", "z", "yRot", "xRot", "onGround"});
-        INTERESTING.put("ServerboundMovePlayerRotPacket", new String[] {"yRot", "xRot", "onGround"});
-        INTERESTING.put("ServerboundMovePlayerStatusOnlyPacket", new String[] {"onGround"});
+        // 26.3 nests these as ServerboundMovePlayerPacket$Pos and friends, and
+        // the simple name of a nested class still carries the outer name, so a
+        // single entry covers every movement packet.
+        INTERESTING.put("ServerboundMovePlayerPacket", new String[] {"yRot", "xRot", "onGround"});
         INTERESTING.put("ServerboundPlayerCommandPacket", new String[] {"id", "action", "data"});
         INTERESTING.put("ServerboundPlayerInputPacket", new String[] {"input"});
         INTERESTING.put("ServerboundClientTickEndPacket", new String[] {});
