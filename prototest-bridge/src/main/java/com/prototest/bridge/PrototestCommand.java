@@ -63,9 +63,39 @@ final class PrototestCommand implements CommandExecutor {
                     default -> reply(sender, "trace: " + plugin.events().traceState());
                 }
             }
+            case "kb" -> {
+                KnockbackTuning kb = plugin.knockback();
+                String action = args.length > 1 ? args[1].toLowerCase() : "status";
+                switch (action) {
+                    case "reload" -> {
+                        kb.reload();
+                        reply(sender, "knockback reloaded: " + kb.describe());
+                    }
+                    case "on" -> {
+                        kb.setEnabled(true);
+                        reply(sender, "knockback: " + kb.describe());
+                    }
+                    case "off" -> {
+                        kb.setEnabled(false);
+                        reply(sender, "knockback: " + kb.describe());
+                    }
+                    case "status" -> reply(sender, "knockback: " + kb.describe());
+                    default -> {
+                        double value;
+                        try {
+                            value = Double.parseDouble(args[1].replace("x", ""));
+                        } catch (NumberFormatException e) {
+                            reply(sender, "/prototest kb <倍率> | on | off | reload | status");
+                            return true;
+                        }
+                        kb.setMultiplier(value);
+                        reply(sender, "knockback: " + kb.describe());
+                    }
+                }
+            }
             case "selfcheck" -> selfcheck(sender, url);
             default -> reply(sender,
-                    "/prototest status | url | log [n] | events [n] | trace start|stop|state [player] | selfcheck");
+                    "/prototest status | url | log [n] | events [n] | trace start|stop|state [player] | kb [倍率|on|off|reload] | selfcheck");
         }
         return true;
     }

@@ -25,6 +25,7 @@ public final class PrototestBridge extends JavaPlugin {
     private final PacketTap tap = new PacketTap(this);
     private final BotRegistry bots = new BotRegistry();
     private final SpectatorService spectate = new SpectatorService(this);
+    private final KnockbackTuning knockback = new KnockbackTuning(this);
 
     private BridgeServer server;
     private long startedAt;
@@ -69,6 +70,12 @@ public final class PrototestBridge extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(spectate, this);
         spectate.start();
+
+        // Knockback tuning: the multiplier is applied to the impulse before it leaves the server, and every scaled
+        // impulse is watched long enough to tell "moved and stayed" from "got set back to where it stood".
+        getServer().getPluginManager().registerEvents(knockback, this);
+        knockback.startClock();
+        knockback.reload();
 
         // Join/quit keep the packet tap attached; players already online (this happens on a plugin reload) are
         // picked up once, here.
@@ -132,6 +139,10 @@ public final class PrototestBridge extends JavaPlugin {
 
     SpectatorService spectate() {
         return spectate;
+    }
+
+    KnockbackTuning knockback() {
+        return knockback;
     }
 
     BridgeServer server() {

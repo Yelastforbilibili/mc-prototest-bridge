@@ -164,6 +164,7 @@ curl "http://127.0.0.1:25963/events?since=0&limit=50"
 | Per-tick movement trace of one player | `POST /trace/start?player=&limit=` `GET /trace/data` |
 | Vanilla registry truth | `GET /registry/blocks` `GET /registry/items` `GET /registry/entities` |
 | Server log lines (JUL + `logs/latest.log`) | `GET /log` `GET /log/file?tail=` |
+| Knockback tuning and "did the victim stay thrown" records | `GET /knockback` `POST /knockback/scale?value=` |
 | Wait for N ticks | `POST /tick/wait?ticks=` |
 
 Every game-state read is executed on the server's main thread (`callSyncMethod`, 15 s timeout), so the
@@ -188,8 +189,32 @@ A bot makes itself known once, right after joining:
   `/see stop` restores the saved items.
 
 Clicks inside a watched inventory are cancelled in both patterns: the view is a live mirror, not a copy the
-operator could take items out of. `GET /bots` exposes the same registry and sessions to a test, which is how
+operator could take items out of. Dragging, dropping and swapping hands are cancelled too, so the mirror
+cannot be used to duplicate either. `GET /bots` exposes the same registry and sessions to a test, which is how
 the acceptance suite proves both patterns without a human in the loop.
+
+### Knockback tuning
+
+A client can only follow the impulse the server sends, so the "how far was that hit" knob lives on the server:
+
+```yaml
+knockback:
+  enabled: false       # nothing is touched while false
+  multiplier: 1.0      # 0.5 = half the distance, 2.0 = twice (vanilla bare-hand knockback is (0.4, 0.36))
+  players: []          # empty = every player; otherwise only these names
+  damage-window: 2     # a velocity packet this soon after damage counts as knockback
+  log-setbacks: true   # warn when the victim ends up back where it started
+```
+
+`/prototest kb [status|on|off|reload|<multiplier>]`, or `POST /knockback/{scale,enabled,reload,clear}`, changes it
+without a restart. Every scaled impulse is watched for 40 ticks and recorded, which is the point: a victim that
+is thrown and then **ends up back at the starting spot** was set back by a prediction check, and that only shows
+up server-side. `GET /knockback` returns those records, and `log-setbacks` puts them in the log as a warning.
+
+The scaling is applied to the victim's velocity *after* the server computed the knockback, and only to velocity
+that follows damage that knocks back (an entity hit or an explosion). `PlayerVelocityEvent#getVelocity()` is the
+movement from before the hurt, so scaling that value — the obvious reading of the API — replaces the knockback
+instead of enlarging it.
 
 ### The event log
 

@@ -14,7 +14,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,8 +37,9 @@ import net.kyori.adventure.text.Component;
  *       "stop": only {@code /see stop} restores the saved items.</li>
  * </ul>
  *
- * <p>Clicks are cancelled in both patterns. Nothing in a watched inventory may be moved, or the viewer would be
- * editing a copy that the next refresh overwrites anyway.
+ * <p>Both patterns are strictly read-only: clicks and drags are cancelled, and so are the two ways a viewer could
+ * still move an item out of a mirror (dropping the cursor item, throwing a held stack). Nothing in a watched
+ * inventory may be moved, or the viewer would be editing a copy that the next refresh overwrites anyway.
  */
 public final class SpectatorService implements Listener {
 
@@ -241,6 +245,36 @@ public final class SpectatorService implements Listener {
             return;
         }
         if (isWatching(viewer)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * A drag never produces an {@link InventoryClickEvent}, so cancelling clicks alone left the one remaining way to
+     * change what the viewer sees (and, with the player pattern, to shove items into their own inventory).
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player viewer)) {
+            return;
+        }
+        if (isWatching(viewer)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** With the player pattern the viewer's own inventory shows the bot's items, so a drop would conjure a real copy. */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (isWatching(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Same reason as {@link #onDropItem}: swapping hands would move a copied stack around for real. */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        if (isWatching(event.getPlayer())) {
             event.setCancelled(true);
         }
     }

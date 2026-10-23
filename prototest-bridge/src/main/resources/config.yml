@@ -8,3 +8,21 @@ token: ""
 
 # Log one line per HTTP request (useful while wiring up a client, noisy afterwards).
 debug: false
+
+# Server-side knockback tuning. The impulse a hit produces is decided by the server, so this is the only place
+# the distance can be changed for real (the client can only follow what it is told).
+# Change these and run /prototest kb reload (or POST /knockback/reload) -- no restart needed.
+knockback:
+  # Master switch: while false nothing is modified and nothing is logged.
+  enabled: false
+  # Every velocity packet the server sends to a player is multiplied by this. 1.0 = vanilla, 0.5 = shorter,
+  # 2.0 = twice as far. Applies to the impulse only, not to gravity or friction.
+  multiplier: 1.0
+  # Empty list = every player (bots and yourself). Otherwise only these names get the multiplier, e.g. [SuiteBot].
+  players: []
+  # A velocity packet within this many ticks of that player taking damage is treated as knockback; the periodic
+  # movement sync a standing player receives is left alone (scaling it would make the client fall faster).
+  damage-window: 2
+  # Log a warning when a player that was thrown moved away and then ended up back at the starting spot
+  # (that is what a prediction check's setback looks like from the server side).
+  log-setbacks: true

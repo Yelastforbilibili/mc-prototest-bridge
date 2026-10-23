@@ -387,6 +387,34 @@ final class BridgeServer {
                     }
                     return Json.map("ok", true, "bots", bots, "registered", plugin.bots().names(), "views", views);
                 });
+            case "/knockback":
+                // The knob that decides how far a hit throws someone lives on the server, so a distance test tunes it
+                // here and reads back whether the thrown player stayed where the physics said (or was set back).
+                return syncJson(() -> {
+                    Map<String, Object> m = new LinkedHashMap<>(plugin.knockback().snapshot());
+                    m.put("ok", true);
+                    m.put("about", plugin.knockback().describe());
+                    return m;
+                });
+            case "/knockback/reload":
+                return syncJson(() -> {
+                    plugin.knockback().reload();
+                    return Json.map("ok", true, "knockback", plugin.knockback().snapshot());
+                });
+            case "/knockback/scale":
+                return syncJson(() -> {
+                    plugin.knockback().setMultiplier(r.reqDouble("value", 1.0));
+                    return Json.map("ok", true, "knockback", plugin.knockback().snapshot());
+                });
+            case "/knockback/enabled":
+                return syncJson(() -> {
+                    String flag = r.req("value", "true").trim();
+                    plugin.knockback().setEnabled(flag.equalsIgnoreCase("true") || flag.equals("1")
+                            || flag.equalsIgnoreCase("on"));
+                    return Json.map("ok", true, "knockback", plugin.knockback().snapshot());
+                });
+            case "/knockback/clear":
+                return syncJson(() -> Json.map("ok", true, "cleared", plugin.knockback().clear()));
             case "/rec":
                 return syncJson(() -> {
                     String player = r.req("player", "");
@@ -639,6 +667,8 @@ final class BridgeServer {
                 "GET  /trace | POST /trace/start?player=&limit= | POST /trace/stop | GET /trace/data",
                 "GET  /rec?player=&since=&limit=  (raw packets in/out for one player, newest last)",
                 "POST /rec/clear | POST /rec/attach",
+                "GET  /knockback  (multiplier + every scaled impulse, with setback detection)",
+                "POST /knockback/reload | POST /knockback/scale?value= | POST /knockback/enabled?value= | POST /knockback/clear",
                 "GET  /registry/blocks?fresh=",
                 "GET  /registry/items?fresh=",
                 "GET  /registry/entities",
